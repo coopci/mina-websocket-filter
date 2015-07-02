@@ -1,11 +1,7 @@
 package gubo.mina.websocket;
 
 import java.io.UnsupportedEncodingException;
-import java.nio.ByteBuffer;
 import java.util.Map;
-
-import newfe.mercury.brokers.xdemo.XdemoBrokerAPI;
-
 import org.apache.mina.core.buffer.IoBuffer;
 import org.apache.mina.core.filterchain.DefaultIoFilterChainBuilder;
 import org.apache.mina.core.filterchain.IoFilterAdapter;
@@ -13,9 +9,6 @@ import org.apache.mina.core.session.IoSession;
 import org.apache.mina.core.write.DefaultWriteRequest;
 import org.apache.mina.core.write.WriteRequest;
 import org.apache.mina.filter.codec.ProtocolDecoderOutput;
-import org.apache.mina.filter.keepalive.KeepAliveFilter;
-import org.apache.mina.filter.logging.LoggingFilter;
-import org.apache.mina.filter.ssl.SslFilter;
 import org.apache.mina.transport.socket.nio.NioSocketAcceptor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
