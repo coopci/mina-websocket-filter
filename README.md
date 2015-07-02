@@ -2,6 +2,7 @@
 A simple websocket filter for mina with customazable permission checker. 
 
 example:
+
 gubo.mina.websocket.WebSocketFilter websocketFilter = new gubo.mina.websocket.WebSocketFilter();
 websocketFilter.setPermissionChecker(new AllowAllPermissionChecker());
 // there are two other out-of-box IPermissionChecker implementation:
