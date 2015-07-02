@@ -1,5 +1,12 @@
 # mina-websocket-filter
 A simple websocket filter for mina with customazable permission checker. 
+
+Disclaimer: Much code is copied from https://issues.apache.org/jira/browse/DIRMINA-907. 
+
+My work includes:
+1. Change it from a ProtocolCodec to a filter, so that it can cooperate with other application level filters.
+2. Add IPermissionChecker and three implementations of IPermissionChecker.
+
 <pre>
 example:
 gubo.mina.websocket.WebSocketFilter websocketFilter = new gubo.mina.websocket.WebSocketFilter();
