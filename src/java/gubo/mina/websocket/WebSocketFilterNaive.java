@@ -1,10 +1,7 @@
 package gubo.mina.websocket;
 
-import gubo.mina.CumulativeIncomeFilter;
-
 import java.io.UnsupportedEncodingException;
 import java.util.Map;
-
 import org.apache.mina.core.buffer.IoBuffer;
 import org.apache.mina.core.filterchain.DefaultIoFilterChainBuilder;
 import org.apache.mina.core.filterchain.IoFilterAdapter;
@@ -18,68 +15,68 @@ import org.slf4j.LoggerFactory;
 
 
 
-public class WebSocketFilter extends CumulativeIncomeFilter {
-	public static Logger logger = LoggerFactory.getLogger(WebSocketFilter.class);
+public class WebSocketFilterNaive extends IoFilterAdapter {
+	public static Logger logger = LoggerFactory.getLogger(WebSocketFilterNaive.class);
 	
 	/**
      * example:
      * 	see static public void example
      *
      */
-//	@Override
-//    public void messageReceived(NextFilter nextFilter, IoSession session, Object message) throws Exception {
-//
-//    	logger.trace("gubo.mina.websocket.WebSocketFilter.");
-//    	IoBuffer in = (IoBuffer) message;
-//    	
-//    	
-//    	IoBuffer resultBuffer;
-//    	
-//    	if(!session.containsAttribute(WebSocketUtils.SessionAttribute)){
-//            // first message on a new connection. see if its from a websocket or a 
-//            // native socket.
-//            // if(tryWebSockeHandShake(session, in, out)){
-//            if (tryWebSockeHandShake(session, in, null, nextFilter)){
-//                // websocket handshake was successful. Don't write anything to output
-//                // as we want to abstract the handshake request message from the handler.
-//                in.position(in.limit());
-//                return ;
-//            } else{
-//                // message is from a native socket. Simply wrap and pass through.
-//                resultBuffer = IoBuffer.wrap(in.array(), 0, in.limit());
-//                in.position(in.limit());
-//                session.setAttribute(WebSocketUtils.SessionAttribute, false);
-//            }
-//        } else if(session.containsAttribute(WebSocketUtils.SessionAttribute) && true==(Boolean)session.getAttribute(WebSocketUtils.SessionAttribute)){            
-//            // there is incoming data from the websocket. Decode and send to handler or next filter.     
-//            int startPos = in.position();
-//            // resultBuffer = buildWSDataBuffer(in, session);
-//            ParsedFrame parsedFrame = buildWSDataBuffer(in, session);
-//            if(parsedFrame == null){
-//                // There was not enough data in the buffer to parse. Reset the in buffer
-//                // position and wait for more data before trying again.
-//                in.position(startPos);
-//                return ;
-//            }
-//            if (parsedFrame.opCode == 9) { // PING
-//            	// do nothing instead of sending a PONG. It works fine with firefox 38.0.5
-//            	// TODO send a PONG frame
-//            	return;
-//            } else if (parsedFrame.opCode == 0xA) { // PONG
-//            	return;
-//            }
-//            resultBuffer = parsedFrame.unMaskedPayLoad;
-//        } else {
-//            // session is known to be from a native socket. So
-//            // simply wrap and pass through.
-//            resultBuffer = IoBuffer.wrap(in.array(), 0, in.limit());    
-//            in.position(in.limit());
-//        }                  
-//        // out.write(resultBuffer);
-//		nextFilter.messageReceived(session, resultBuffer);
-//        return ;
-//    }
-//    
+	@Override
+    public void messageReceived(NextFilter nextFilter, IoSession session, Object message) throws Exception {
+
+    	logger.trace("gubo.mina.websocket.WebSocketFilter.");
+    	IoBuffer in = (IoBuffer) message;
+    	
+    	
+    	IoBuffer resultBuffer;
+    	
+    	if(!session.containsAttribute(WebSocketUtils.SessionAttribute)){
+            // first message on a new connection. see if its from a websocket or a 
+            // native socket.
+            // if(tryWebSockeHandShake(session, in, out)){
+            if (tryWebSockeHandShake(session, in, null, nextFilter)){
+                // websocket handshake was successful. Don't write anything to output
+                // as we want to abstract the handshake request message from the handler.
+                in.position(in.limit());
+                return ;
+            } else{
+                // message is from a native socket. Simply wrap and pass through.
+                resultBuffer = IoBuffer.wrap(in.array(), 0, in.limit());
+                in.position(in.limit());
+                session.setAttribute(WebSocketUtils.SessionAttribute, false);
+            }
+        } else if(session.containsAttribute(WebSocketUtils.SessionAttribute) && true==(Boolean)session.getAttribute(WebSocketUtils.SessionAttribute)){            
+            // there is incoming data from the websocket. Decode and send to handler or next filter.     
+            int startPos = in.position();
+            // resultBuffer = buildWSDataBuffer(in, session);
+            ParsedFrame parsedFrame = buildWSDataBuffer(in, session);
+            if(parsedFrame == null){
+                // There was not enough data in the buffer to parse. Reset the in buffer
+                // position and wait for more data before trying again.
+                in.position(startPos);
+                return ;
+            }
+            if (parsedFrame.opCode == 9) { // PING
+            	// do nothing instead of sending a PONG. It works fine with firefox 38.0.5
+            	// TODO send a PONG frame
+            	return;
+            } else if (parsedFrame.opCode == 0xA) { // PONG
+            	return;
+            }
+            resultBuffer = parsedFrame.unMaskedPayLoad;
+        } else {
+            // session is known to be from a native socket. So
+            // simply wrap and pass through.
+            resultBuffer = IoBuffer.wrap(in.array(), 0, in.limit());    
+            in.position(in.limit());
+        }                  
+        // out.write(resultBuffer);
+		nextFilter.messageReceived(session, resultBuffer);
+        return ;
+    }
+    
     static public class ParsedFrame {
     	byte opCode;
     	IoBuffer unMaskedPayLoad; 
@@ -280,7 +277,7 @@ public class WebSocketFilter extends CumulativeIncomeFilter {
      public void filterWrite(NextFilter nextFilter, IoSession session, WriteRequest request) {
     	 
     	 if(session.containsAttribute(WebSocketUtils.SessionAttribute) && true==(Boolean)session.getAttribute(WebSocketUtils.SessionAttribute)){
-	    	 IoBuffer resultBuffer = WebSocketFilter.buildWSDataFrameBuffer((IoBuffer)request.getMessage());
+	    	 IoBuffer resultBuffer = WebSocketFilterNaive.buildWSDataFrameBuffer((IoBuffer)request.getMessage());
 	    	 nextFilter.filterWrite(
 	    	        session, 
 	    	        new DefaultWriteRequest(resultBuffer, request.getFuture(), request.getDestination())
@@ -310,7 +307,7 @@ public class WebSocketFilter extends CumulativeIncomeFilter {
      }
      
      public void example() {
-    	 gubo.mina.websocket.WebSocketFilter websocketFilter = new gubo.mina.websocket.WebSocketFilter();
+    	 gubo.mina.websocket.WebSocketFilterNaive websocketFilter = new gubo.mina.websocket.WebSocketFilterNaive();
     	 
     	 websocketFilter.setPermissionChecker(new AllowAllPermissionChecker());
     	 // there are two other out-of-box IPermissionChecker implementation:
@@ -325,62 +322,4 @@ public class WebSocketFilter extends CumulativeIncomeFilter {
     	 chain.addLast("wsfilter", websocketFilter);
     	 
      }
-
-
-	@Override
-	protected boolean doDecode(IoSession session, IoBuffer in, NextFilter nextFilter,
-			ProtocolDecoderOutput out) throws Exception {
-		logger.trace("gubo.mina.websocket.WebSocketFilter.");
-    	
-    	
-    	IoBuffer resultBuffer;
-    	
-    	if(!session.containsAttribute(WebSocketUtils.SessionAttribute)){
-            // first message on a new connection. see if its from a websocket or a 
-            // native socket.
-            // if(tryWebSockeHandShake(session, in, out)){
-            if (tryWebSockeHandShake(session, in, null, nextFilter)){
-                // websocket handshake was successful. Don't write anything to output
-                // as we want to abstract the handshake request message from the handler.
-                in.position(in.limit());
-                return true;
-            } else{
-                // message is from a native socket. Simply wrap and pass through.
-                resultBuffer = IoBuffer.wrap(in.array(), 0, in.limit());
-                in.position(in.limit());
-                session.setAttribute(WebSocketUtils.SessionAttribute, false);
-            }
-        } else if(session.containsAttribute(WebSocketUtils.SessionAttribute) && true==(Boolean)session.getAttribute(WebSocketUtils.SessionAttribute)){            
-            // there is incoming data from the websocket. Decode and send to handler or next filter.     
-            int startPos = in.position();
-            // resultBuffer = buildWSDataBuffer(in, session);
-            ParsedFrame parsedFrame = buildWSDataBuffer(in, session);
-            if(parsedFrame == null){
-                // There was not enough data in the buffer to parse. Reset the in buffer
-                // position and wait for more data before trying again.
-                in.position(startPos);
-                return false;
-            }
-            if (parsedFrame.opCode == 9) { // PING
-            	// do nothing instead of sending a PONG. It works fine with firefox 38.0.5
-            	// TODO send a PONG frame
-            	return true;
-            } else if (parsedFrame.opCode == 0xA) { // PONG
-            	return true;
-            }
-            resultBuffer = parsedFrame.unMaskedPayLoad;
-        } else {
-            // session is known to be from a native socket. So
-            // simply wrap and pass through.
-            resultBuffer = IoBuffer.wrap(in.array(), 0, in.limit());    
-            in.position(in.limit());
-        }                  
-    	
-    	if (resultBuffer != null) {
-    		out.write(resultBuffer);
-    		return true;
-    	} else {
-    		return false;
-    	}
-	}
 }
